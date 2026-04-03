@@ -2,7 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 
 // توكن البوت
-const TELEGRAM_TOKEN = '8728515147:AAEtQF4pFV4E0jlrGebWgCvDpOA058kF-7A';
+const TELEGRAM_TOKEN = '8676421761:AAGq0OmLJfAZH8mQDvtlHgYUeuXGs7D9ESc';
 
 // إنشاء البوت
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
