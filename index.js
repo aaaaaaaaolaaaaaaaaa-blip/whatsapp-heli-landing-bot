@@ -1,3 +1,5 @@
+
+
 import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 import fs from 'fs';
@@ -10,14 +12,14 @@ const TELEGRAM_TOKEN = '8676421761:AAGq0OmLJfAZH8mQDvtlHgYUeuXGs7D9ESc';
 // إنشاء البوت
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-// قراءة بيانات المواقع من الملف
+// قراءة بيانات المواقع
 const dataPath = path.join(process.cwd(), 'saudi_heliports.json');
 const heliports = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
-// إعداد geocoder
+// إعداد الجيوكودر لتحويل الإحداثيات إلى المدينة
 const geocoder = NodeGeocoder({ provider: 'openstreetmap' });
 
-// دالة لحساب المسافة بين نقطتين (كم)
+// دالة لحساب المسافة بالكيلومتر
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -34,23 +36,20 @@ bot.on('location', async (msg) => {
   const chatId = msg.chat.id;
   const { latitude, longitude } = msg.location;
 
-  // تحديد اسم المدينة من الإحداثيات
-  let city = 'unknown';
-  try {
-    const res = await geocoder.reverse({ lat: latitude, lon: longitude });
-    if (res && res.length > 0 && res[0].city) city = res[0].city;
-  } catch (err) {
-    console.error('Error reverse geocoding:', err);
-  }
+  // تحويل الإحداثيات إلى المدينة
+  const res = await geocoder.reverse({ lat: latitude, lon: longitude });
+  const city = res[0]?.city || res[0]?.state || 'Unknown';
 
-  // فلترة المواقع حسب المدينة أولاً
-  let nearby = heliports.filter(h => h.city === city);
-  if (nearby.length < 5) {
-    nearby = [...nearby, ...heliports.filter(h => h.city !== city)];
+  // فلترة المواقع داخل نفس المدينة
+  const cityHeliports = heliports.filter(h => h.city.toLowerCase() === city.toLowerCase());
+
+  if(cityHeliports.length === 0) {
+    await bot.sendMessage(chatId, `لم يتم العثور على أماكن هبوط في ${city}`);
+    return;
   }
 
   // ترتيب أقرب 5 مواقع
-  const sorted = nearby.map(h => ({
+  const sorted = cityHeliports.map(h => ({
     ...h,
     distance: getDistance(latitude, longitude, h.lat, h.lon)
   }))
@@ -58,9 +57,9 @@ bot.on('location', async (msg) => {
   .slice(0, 5);
 
   // رسالة نصية مع أسماء المواقع والمسافة
-  let reply = `أقرب 5 مواقع هبوط في ${city} أو قريب:\n`;
+  let reply = `أقرب 5 مواقع هبوط في ${city}:\n`;
   sorted.forEach((h, i) => {
-    reply += `${i+1}- ${h.name} (${h.city}) — المسافة: ${h.distance.toFixed(2)} كم\n`;
+    reply += `${i+1}- ${h.name} — المسافة: ${h.distance.toFixed(2)} كم\n`;
   });
 
   // أزرار لفتح المواقع على OpenStreetMap
@@ -69,6 +68,7 @@ bot.on('location', async (msg) => {
     url: `https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lon}&zoom=16`
   }]));
 
+  // إرسال النص + الأزرار
   await bot.sendMessage(chatId, reply, {
     reply_markup: { inline_keyboard: inlineKeyboard }
   });
