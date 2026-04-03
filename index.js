@@ -1,6 +1,8 @@
 import TelegramBot from 'node-telegram-bot-api';
-import fs from 'fs';
 import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import NodeGeocoder from 'node-geocoder';
 
 // توكن البوت
 const TELEGRAM_TOKEN = '8676421761:AAGq0OmLJfAZH8mQDvtlHgYUeuXGs7D9ESc';
@@ -8,19 +10,21 @@ const TELEGRAM_TOKEN = '8676421761:AAGq0OmLJfAZH8mQDvtlHgYUeuXGs7D9ESc';
 // إنشاء البوت
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-// قراءة بيانات مواقع الهبوط الكبيرة
-const heliports = JSON.parse(fs.readFileSync('saudi_heliports.json', 'utf-8'));
+// قراءة بيانات المواقع من الملف
+const dataPath = path.join(process.cwd(), 'saudi_heliports.json');
+const heliports = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
-// دالة لحساب المسافة بين نقطتين (كيلومتر)
+// إعداد geocoder
+const geocoder = NodeGeocoder({ provider: 'openstreetmap' });
+
+// دالة لحساب المسافة بين نقطتين (كم)
 function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -30,8 +34,23 @@ bot.on('location', async (msg) => {
   const chatId = msg.chat.id;
   const { latitude, longitude } = msg.location;
 
-  // ترتيب أقرب 5 مواقع (يمكن تغيير الرقم)
-  const sorted = heliports.map(h => ({
+  // تحديد اسم المدينة من الإحداثيات
+  let city = 'unknown';
+  try {
+    const res = await geocoder.reverse({ lat: latitude, lon: longitude });
+    if (res && res.length > 0 && res[0].city) city = res[0].city;
+  } catch (err) {
+    console.error('Error reverse geocoding:', err);
+  }
+
+  // فلترة المواقع حسب المدينة أولاً
+  let nearby = heliports.filter(h => h.city === city);
+  if (nearby.length < 5) {
+    nearby = [...nearby, ...heliports.filter(h => h.city !== city)];
+  }
+
+  // ترتيب أقرب 5 مواقع
+  const sorted = nearby.map(h => ({
     ...h,
     distance: getDistance(latitude, longitude, h.lat, h.lon)
   }))
@@ -39,9 +58,9 @@ bot.on('location', async (msg) => {
   .slice(0, 5);
 
   // رسالة نصية مع أسماء المواقع والمسافة
-  let reply = 'أقرب مواقع هبوط:\n';
+  let reply = `أقرب 5 مواقع هبوط في ${city} أو قريب:\n`;
   sorted.forEach((h, i) => {
-    reply += `${i+1}- ${h.name} (المسافة: ${h.distance.toFixed(2)} كم)\n`;
+    reply += `${i+1}- ${h.name} (${h.city}) — المسافة: ${h.distance.toFixed(2)} كم\n`;
   });
 
   // أزرار لفتح المواقع على OpenStreetMap
@@ -50,7 +69,6 @@ bot.on('location', async (msg) => {
     url: `https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lon}&zoom=16`
   }]));
 
-  // إرسال النص + الأزرار فقط (بدون صورة)
   await bot.sendMessage(chatId, reply, {
     reply_markup: { inline_keyboard: inlineKeyboard }
   });
@@ -58,6 +76,6 @@ bot.on('location', async (msg) => {
 
 // ويب سيرفر للتجارب أو Render
 const app = express();
-app.get('/', (req, res) => res.send('Helicopter Telegram Bot Running'));
+app.get('/', (req,res) => res.send('Helicopter Telegram Bot Running'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server running on port ' + PORT));
