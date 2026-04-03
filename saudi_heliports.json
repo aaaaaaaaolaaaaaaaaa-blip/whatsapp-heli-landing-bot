@@ -1,5 +1,5 @@
 [
-  // ======= RIYADH =======
+ 
   {
     "city": "Riyadh",
     "name": "King Khalid International Airport Helipad",
@@ -31,7 +31,7 @@
     "lon": 46.7700
   },
 
-  // ======= JEDDAH =======
+
   {
     "city": "Jeddah",
     "name": "King Abdulaziz International Airport Helipad",
@@ -63,7 +63,7 @@
     "lon": 39.1719
   },
 
-  // ======= MAKKAH =======
+
   {
     "city": "Makkah",
     "name": "Makkah Central Helipad",
@@ -89,7 +89,7 @@
     "lon": 39.8390
   },
 
-  // ======= MADINAH =======
+  
   {
     "city": "Madinah",
     "name": "Prince Mohammad Bin Abdulaziz Airport Helipad",
@@ -109,7 +109,7 @@
     "lon": 39.5710
   },
 
-  // ======= DAMMAM =======
+
   {
     "city": "Dammam",
     "name": "King Fahd International Airport Helipad",
@@ -129,7 +129,7 @@
     "lon": 50.0574
   },
 
-  // ======= ABOHA =======
+ 
   {
     "city": "Abha",
     "name": "Abha International Airport Helipad",
@@ -149,7 +149,7 @@
     "lon": 42.6600
   },
 
-  // ======= TAIF =======
+
   {
     "city": "Taif",
     "name": "Taif Regional Airport Helipad",
@@ -163,7 +163,6 @@
     "lon": 40.5010
   },
 
-  // ======= TABUK =======
   {
     "city": "Tabuk",
     "name": "Tabuk Airport Helipad",
@@ -177,7 +176,7 @@
     "lon": 36.1947
   },
 
-  // ======= HAIL =======
+
   {
     "city": "Hail",
     "name": "Hail Regional Airport Helipad",
@@ -191,7 +190,7 @@
     "lon": 41.69
   },
 
-  // ======= AL BAHAH =======
+ 
   {
     "city": "Al Bahah",
     "name": "Al Bahah Airport Helipad",
@@ -199,7 +198,7 @@
     "lon": 41.4671
   },
 
-  // ======= JAZAN =======
+ 
   {
     "city": "Jazan",
     "name": "Jazan Regional Airport Helipad",
@@ -213,7 +212,7 @@
     "lon": 42.5733
   },
 
-  // ======= NAJRAN =======
+  
   {
     "city": "Najran",
     "name": "Najran Domestic Airport Helipad",
@@ -227,7 +226,6 @@
     "lon": 44.4180
   },
 
-  // ======= QASSIM =======
   {
     "city": "Buraidah",
     "name": "Al Qassim Regional Airport Helipad",
