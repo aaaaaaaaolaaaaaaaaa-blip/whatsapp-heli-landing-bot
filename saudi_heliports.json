@@ -1,177 +1,27 @@
 [
   {
-    "name": "King Abdulaziz International Airport Heliport",
-    "city": "Jeddah",
-    "lat": 21.680000,
-    "lon": 39.156000,
-    "radius_km": 60
+    "city": "جدة",
+    "name": "King Abdulaziz International Airport Helipad",
+    "lat": 21.6705,
+    "lon": 39.1523
   },
   {
+    "city": "جدة",
     "name": "Jeddah Central Hospital Helipad",
-    "city": "Jeddah",
-    "lat": 21.565800,
-    "lon": 39.207200,
-    "radius_km": 60
+    "lat": 21.5698,
+    "lon": 39.1665
   },
   {
-    "name": "King Fahd Hospital Helipad",
-    "city": "Jeddah",
-    "lat": 21.485800,
-    "lon": 39.192500,
-    "radius_km": 60
+    "city": "مكة",
+    "name": "Makkah Central Helipad",
+    "lat": 21.3891,
+    "lon": 39.8579
   },
   {
-    "name": "Abraj al‑Bait East Tower Helipad",
-    "city": "Makkah",
-    "lat": 21.418000,
-    "lon": 39.825000,
-    "radius_km": 50
-  },
-  {
-    "name": "Abraj al‑Bait West Tower Helipad",
-    "city": "Makkah",
-    "lat": 21.418000,
-    "lon": 39.824000,
-    "radius_km": 50
-  },
-  {
-    "name": "Mecca Armed Forces Medical Center Helipad",
-    "city": "Makkah",
-    "lat": 21.389100,
-    "lon": 39.857900,
-    "radius_km": 50
-  },
-  {
+    "city": "مكة",
     "name": "King Abdullah Medical City Helipad",
-    "city": "Makkah",
-    "lat": 21.426600,
-    "lon": 39.826200,
-    "radius_km": 50
-  },
-  {
-    "name": "King Khalid International Airport Heliport",
-    "city": "Riyadh",
-    "lat": 24.957600,
-    "lon": 46.698100,
-    "radius_km": 70
-  },
-  {
-    "name": "King Fahad Hospital Helipad",
-    "city": "Riyadh",
-    "lat": 24.750300,
-    "lon": 46.854334,
-    "radius_km": 60
-  },
-  {
-    "name": "Princess Nora University Helipad",
-    "city": "Riyadh",
-    "lat": 24.792100,
-    "lon": 46.698300,
-    "radius_km": 60
-  },
-  {
-    "name": "Stadium Helipad",
-    "city": "Riyadh",
-    "lat": 24.788741,
-    "lon": 46.836069,
-    "radius_km": 60
-  },
-  {
-    "name": "SANG Airbase Helipads (4x)",
-    "city": "Riyadh",
-    "lat": 24.680000,
-    "lon": 46.770000,
-    "radius_km": 70
-  },
-  {
-    "name": "Abha International Airport Heliport",
-    "city": "Abha",
-    "lat": 18.223000,
-    "lon": 42.656600,
-    "radius_km": 50
-  },
-  {
-    "name": "Abha Central Hospital Helipad",
-    "city": "Abha",
-    "lat": 18.220000,
-    "lon": 42.660000,
-    "radius_km": 50
-  },
-  {
-    "name": "Al‑Ahsa International Airport Heliport",
-    "city": "Hofuf",
-    "lat": 25.285800,
-    "lon": 49.485800,
-    "radius_km": 50
-  },
-  {
-    "name": "Taif Regional Airport Heliport",
-    "city": "Taif",
-    "lat": 21.560000,
-    "lon": 40.476300,
-    "radius_km": 50
-  },
-  {
-    "name": "Tanajib Desert Heliport",
-    "city": "Tanajib",
-    "lat": 25.000000,
-    "lon": 49.300000,
-    "radius_km": 80
-  },
-  {
-    "name": "Jazan Regional Airport Heliport",
-    "city": "Jazan",
-    "lat": 16.901100,
-    "lon": 42.585800,
-    "radius_km": 50
-  },
-  {
-    "name": "Neom Staff Helipads (8x)",
-    "city": "Neom",
-    "lat": 28.003552,
-    "lon": 35.192857,
-    "radius_km": 70
-  },
-  {
-    "name": "Hafar Al Batin Airport Heliport",
-    "city": "Hafar Al‑Batin",
-    "lat": 28.433333,
-    "lon": 46.100000,
-    "radius_km": 60
-  },
-  {
-    "name": "Najran Domestic Airport Heliport",
-    "city": "Najran",
-    "lat": 17.611400,
-    "lon": 44.419200,
-    "radius_km": 50
-  },
-  {
-    "name": "Tabuk Airport Heliport",
-    "city": "Tabuk",
-    "lat": 28.365400,
-    "lon": 36.618900,
-    "radius_km": 60
-  },
-  {
-    "name": "Neom Bay Airport Heliport",
-    "city": "Tabuk",
-    "lat": 28.984700,
-    "lon": 36.194700,
-    "radius_km": 60
-  },
-  {
-    "name": "Al Qassim Regional Airport Heliport",
-    "city": "Buraidah",
-    "lat": 26.325600,
-    "lon": 43.963000,
-    "radius_km": 50
-  },
-  {
-    "name": "Hail Regional Airport Heliport",
-    "city": "Hail",
-    "lat": 27.486300,
-    "lon": 41.686100,
-    "radius_km": 50
+    "lat": 21.4180,
+    "lon": 39.8226
   }
 ]
+    
