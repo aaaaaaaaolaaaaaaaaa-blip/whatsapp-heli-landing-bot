@@ -1,11 +1,19 @@
+
 {
-  "name": "heli-telegram-bot",
+  "name": "heli-bot",
   "version": "1.0.0",
-  "type": "module",
   "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "express": "^4.18.2",
+ 
     "node-telegram-bot-api": "^0.61.0"
-     "node-geocoder": "^3.27.0"
+         "node-geocoder": "^3.27.0"
   }
 }
+
+  
+
