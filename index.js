@@ -1,13 +1,13 @@
 import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 
-// ضع هنا التوكن اللي حصلت عليه من BotFather بين علامات اقتباس
+// ضع توكن البوت هنا
 const TELEGRAM_TOKEN = '8728515147:AAEtQF4pFV4E0jlrGebWgCvDpOA058kF-7A';
 
 // إنشاء البوت
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-// قاعدة بيانات بسيطة لأقرب مواقع الهبوط
+// قاعدة بيانات بسيطة لمواقع الهبوط
 const heliports = [
   { name: "King Abdulaziz Hospital", lat: 21.565, lon: 39.172 },
   { name: "Jeddah Port Helipad", lat: 21.527, lon: 39.173 },
@@ -26,39 +26,44 @@ function getDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// استقبال الرسائل من المستخدم
-bot.onText(/(.+)/, (msg, match) => {
+// استقبال الموقع من المستخدم
+bot.on('location', async (msg) => {
   const chatId = msg.chat.id;
-  const text = match[1];
+  const { latitude, longitude } = msg.location;
 
-  // نتوقع المستخدم يرسل: "lat,lon"
-  const parts = text.split(',');
-  if (parts.length !== 2) {
-    bot.sendMessage(chatId, 'أرسل الإحداثيات بهذا الشكل: lat,lon');
-    return;
-  }
-
-  const lat = parseFloat(parts[0]);
-  const lon = parseFloat(parts[1]);
-
-  // أقرب 3 مواقع هبوط
+  // ترتيب أقرب 3 مواقع
   const sorted = heliports.map(h => ({
     ...h,
-    distance: getDistance(lat, lon, h.lat, h.lon)
+    distance: getDistance(latitude, longitude, h.lat, h.lon)
   }))
   .sort((a,b) => a.distance - b.distance)
   .slice(0,3);
 
-  // بناء الرد
+  // بناء URL لخريطة OpenStreetMap عبر staticmap.openstreetmap.de
+  // نضع دوائر خضراء على مواقع الهبوط
+  const markers = sorted.map(h => `&markers=${h.lat},${h.lon},green`).join('');
+  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=14&size=600x400${markers}`;
+
+  // رسالة نصية مع أسماء المواقع والمسافة
   let reply = 'أقرب 3 مواقع هبوط:\n';
   sorted.forEach((h, i) => {
     reply += `${i+1}- ${h.name} (المسافة: ${h.distance.toFixed(2)} كم)\n`;
   });
 
-  bot.sendMessage(chatId, reply);
+  // إنشاء أزرار لفتح كل موقع على OpenStreetMap
+  const inlineKeyboard = sorted.map(h => ([{
+    text: `افتح ${h.name}`,
+    url: `https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lon}&zoom=16`
+  }]));
+
+  // إرسال الصورة + الرسالة + الأزرار
+  await bot.sendPhoto(chatId, mapUrl, {
+    caption: reply,
+    reply_markup: { inline_keyboard: inlineKeyboard }
+  });
 });
 
-// ويب سيرفر للتجارب أو نشره على Render
+// ويب سيرفر للتجارب أو Render
 const app = express();
 app.get('/', (req,res) => res.send('Helicopter Telegram Bot Running'));
 const PORT = process.env.PORT || 3000;
