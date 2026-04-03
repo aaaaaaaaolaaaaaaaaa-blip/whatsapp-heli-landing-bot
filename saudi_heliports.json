@@ -1,63 +1,24 @@
-import TelegramBot from 'node-telegram-bot-api';
-import express from 'express';
-import fs from 'fs';
-import path from 'path';
-
-// توكن البوت
-const TELEGRAM_TOKEN = '8676421761:AAGq0OmLJfAZH8mQDvtlHgYUeuXGs7D9ESc';
-
-// إنشاء البوت
-const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
-
-// قراءة بيانات المواقع من الملف
-const dataPath = path.join(process.cwd(), 'saudi_heliports.json');
-const heliports = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-
-// دالة لحساب المسافة بين نقطتين (كيلومتر)
-function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-// استقبال الموقع من المستخدم
-bot.on('location', async (msg) => {
-  const chatId = msg.chat.id;
-  const { latitude, longitude } = msg.location;
-
-  // ترتيب أقرب 5 مواقع
-  const sorted = heliports.map(h => ({
-    ...h,
-    distance: getDistance(latitude, longitude, h.lat, h.lon)
-  }))
-  .sort((a, b) => a.distance - b.distance)
-  .slice(0, 5);
-
-  // رسالة نصية مع أسماء المواقع والمسافة
-  let reply = 'أقرب 5 مواقع هبوط:\n';
-  sorted.forEach((h, i) => {
-    reply += `${i+1}- ${h.name} (${h.city}) — المسافة: ${h.distance.toFixed(2)} كم\n`;
-  });
-
-  // أزرار لفتح المواقع على OpenStreetMap
-  const inlineKeyboard = sorted.map(h => ([{
-    text: `افتح ${h.name}`,
-    url: `https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lon}&zoom=16`
-  }]));
-
-  // إرسال النص + الأزرار (بدون صورة)
-  await bot.sendMessage(chatId, reply, {
-    reply_markup: { inline_keyboard: inlineKeyboard }
-  });
-});
-
-// ويب سيرفر للتجارب أو Render
-const app = express();
-app.get('/', (req,res) => res.send('Helicopter Telegram Bot Running'));
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Server running on port ' + PORT));
+[
+  { "name": "King Abdulaziz International Airport Helipad", "city": "Jeddah", "lat": 21.6796, "lon": 39.1561 },
+  { "name": "King Fahd International Airport Helipad", "city": "Dammam", "lat": 26.4713, "lon": 49.7977 },
+  { "name": "Prince Mohammed bin Abdulaziz Airport Helipad", "city": "Madinah", "lat": 24.5565, "lon": 39.3090 },
+  { "name": "Abha Regional Airport Helipad", "city": "Abha", "lat": 18.2236, "lon": 42.5571 },
+  { "name": "Taif Regional Airport Helipad", "city": "Taif", "lat": 21.4831, "lon": 40.5438 },
+  { "name": "King Khalid International Airport Helipad", "city": "Riyadh", "lat": 24.9576, "lon": 46.6989 },
+  { "name": "Prince Sultan Air Base Helipad", "city": "Riyadh", "lat": 24.0193, "lon": 46.5812 },
+  { "name": "Najran Airport Helipad", "city": "Najran", "lat": 17.5656, "lon": 44.1329 },
+  { "name": "Hafr Al Batin Airport Helipad", "city": "Hafr Al Batin", "lat": 28.4335, "lon": 45.9608 },
+  { "name": "Al-Ahsa Airport Helipad", "city": "Hofuf", "lat": 25.2858, "lon": 49.4858 },
+  { "name": "Gassim Airport Helipad", "city": "Buraidah", "lat": 26.3750, "lon": 43.8850 },
+  { "name": "Tabuk Airport Helipad", "city": "Tabuk", "lat": 28.3838, "lon": 36.5536 },
+  { "name": "Al Jouf Airport Helipad", "city": "Sakakah", "lat": 29.9528, "lon": 40.2100 },
+  { "name": "Arar Airport Helipad", "city": "Arar", "lat": 30.9437, "lon": 41.1389 },
+  { "name": "Al Qassim Domestic Airport Helipad", "city": "Buraidah", "lat": 26.3027, "lon": 43.7745 },
+  { "name": "Al Ula Airport Helipad", "city": "Al Ula", "lat": 26.7110, "lon": 37.2194 },
+  { "name": "Al Bahah Airport Helipad", "city": "Al Bahah", "lat": 20.2829, "lon": 41.4908 },
+  { "name": "Makkah Central Helipad", "city": "Makkah", "lat": 21.3891, "lon": 39.8579 },
+  { "name": "King Abdullah Medical City Helipad", "city": "Madinah", "lat": 24.5475, "lon": 39.6013 },
+  { "name": "King Fahd Hospital Helipad", "city": "Jubail", "lat": 27.0048, "lon": 49.6435 },
+  { "name": "King Khalid Hospital Helipad", "city": "Riyadh", "lat": 24.7136, "lon": 46.6753 },
+  { "name": "Prince Sultan Cardiac Center Helipad", "city": "Riyadh", "lat": 24.6312, "lon": 46.7154 }
+]
