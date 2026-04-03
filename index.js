@@ -2,27 +2,38 @@ import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import NodeGeocoder from 'node-geocoder';
 
 // توكن البوت
 const TELEGRAM_TOKEN = '8676421761:AAGq0OmLJfAZH8mQDvtlHgYUeuXGs7D9ESc';
-
-// إنشاء البوت
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
 // قراءة بيانات المواقع من الملف
 const dataPath = path.join(process.cwd(), 'saudi_heliports.json');
 const heliports = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 
+// خريطة المدن العربي ↔ الإنجليزي للتأكد من فلترة صحيحة
+const cityMap = {
+  "جدة": ["Jeddah", "جدة"],
+  "مكة": ["Makkah", "مكة"],
+  "الرياض": ["Riyadh", "الرياض"],
+  "الدمام": ["Dammam", "الدمام"],
+  "المدينة المنورة": ["Medina", "المدينة المنورة"],
+  "الطايف": ["Taif", "الطايف"],
+  // أضف باقي المدن هنا بنفس الأسلوب
+};
+
+// إعداد الجيوكودر
+const geocoder = NodeGeocoder({ provider: 'openstreetmap' });
+
 // دالة لحساب المسافة بين نقطتين (كيلومتر)
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // نصف قطر الأرض بالكيلومتر
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-      Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) ** 2;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -32,48 +43,60 @@ bot.on('location', async (msg) => {
   const chatId = msg.chat.id;
   const { latitude, longitude } = msg.location;
 
-  // فلترة المواقع داخل نفس المدينة باستخدام أقرب 5
-  // نبحث المدينة الأقرب من المواقع الموجودة
-  const cityDistances = {};
-
-  heliports.forEach(h => {
-    const dist = getDistance(latitude, longitude, h.lat, h.lon);
-    if (!cityDistances[h.city] || cityDistances[h.city] > dist) {
-      cityDistances[h.city] = dist;
-    }
-  });
-
-  // نأخذ أقرب مدينة
-  const closestCity = Object.keys(cityDistances).reduce((a, b) => cityDistances[a] < cityDistances[b] ? a : b);
-
-  // فلترة المواقع حسب المدينة
-  const cityHeliports = heliports
-    .filter(h => h.city === closestCity)
-    .map(h => ({ ...h, distance: getDistance(latitude, longitude, h.lat, h.lon) }))
-    .sort((a, b) => a.distance - b.distance)
-    .slice(0, 5); // أقرب 5 فقط
-
-  if(cityHeliports.length === 0) {
-    await bot.sendMessage(chatId, `لم يتم العثور على أماكن هبوط في ${closestCity}`);
+  // تحويل الإحداثيات إلى المدينة
+  let res;
+  try {
+    res = await geocoder.reverse({ lat: latitude, lon: longitude });
+  } catch (err) {
+    await bot.sendMessage(chatId, 'حدث خطأ أثناء تحديد موقعك، حاول مرة أخرى.');
     return;
   }
 
+  const rawCity = res[0]?.city || res[0]?.state || 'Unknown';
+
+  // نبحث عن اسم المدينة الصحيح باستخدام الخريطة
+  let matchedCity = null;
+  for (const [key, variants] of Object.entries(cityMap)) {
+    if (variants.map(v => v.toLowerCase()).includes(rawCity.toLowerCase())) {
+      matchedCity = key;
+      break;
+    }
+  }
+
+  if (!matchedCity) {
+    await bot.sendMessage(chatId, `لم نتمكن من التعرف على مدينتك (${rawCity}).`);
+    return;
+  }
+
+  // فلترة المواقع حسب المدينة فقط
+  const cityHeliports = heliports.filter(h => h.city === matchedCity);
+
+  if(cityHeliports.length === 0) {
+    await bot.sendMessage(chatId, `لم يتم العثور على أماكن هبوط في ${matchedCity}.`);
+    return;
+  }
+
+  // ترتيب أقرب 5 مواقع داخل نفس المدينة
+  const sorted = cityHeliports.map(h => ({
+    ...h,
+    distance: getDistance(latitude, longitude, h.lat, h.lon)
+  }))
+  .sort((a, b) => a.distance - b.distance)
+  .slice(0, 5);
+
   // رسالة نصية مع أسماء المواقع والمسافة
-  let reply = `أقرب مواقع الهبوط في ${closestCity}:\n`;
-  cityHeliports.forEach((h, i) => {
-    reply += `${i + 1}- ${h.name} — المسافة: ${h.distance.toFixed(2)} كم\n`;
+  let reply = `أقرب مواقع الهبوط في ${matchedCity}:\n`;
+  sorted.forEach((h, i) => {
+    reply += `${i+1}- ${h.name} — المسافة: ${h.distance.toFixed(2)} كم\n`;
   });
 
   // أزرار لفتح المواقع على OpenStreetMap
-  const inlineKeyboard = cityHeliports.map(h => ([{
+  const inlineKeyboard = sorted.map(h => ([{
     text: `افتح ${h.name}`,
     url: `https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lon}&zoom=16`
   }]));
 
-  // إرسال النص + الأزرار
-  await bot.sendMessage(chatId, reply, {
-    reply_markup: { inline_keyboard: inlineKeyboard }
-  });
+  await bot.sendMessage(chatId, reply, { reply_markup: { inline_keyboard: inlineKeyboard } });
 });
 
 // ويب سيرفر للتجارب أو Render
