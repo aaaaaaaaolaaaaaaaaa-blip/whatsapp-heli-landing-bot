@@ -1,6 +1,6 @@
-// ضع هنا التوكن اللي حصلت عليه من BotFather
-const TELEGRAM_TOKEN = 8728515147:AAEtQF4pFV4E0jlrGebWgCvDpOA058kF-7A
+
 import TelegramBot from 'node-telegram-bot-api';
+const TELEGRAM_TOKEN = 8728515147:AAEtQF4pFV4E0jlrGebWgCvDpOA058kF-7A
 import express from 'express';
 
 // ضع هنا التوكن اللي حصلت عليه من BotFather
