@@ -1,22 +1,22 @@
 import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 
-// ضع توكن البوت هنا
+// توكن البوت
 const TELEGRAM_TOKEN = '8728515147:AAEtQF4pFV4E0jlrGebWgCvDpOA058kF-7A';
 
 // إنشاء البوت
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: true });
 
-// قاعدة بيانات بسيطة لمواقع الهبوط
+// قاعدة بيانات بسيطة لمواقع الهبوط (أمثلة)
 const heliports = [
   { name: "King Abdulaziz Hospital", lat: 21.565, lon: 39.172 },
   { name: "Jeddah Port Helipad", lat: 21.527, lon: 39.173 },
   { name: "Private Helipad", lat: 21.555, lon: 39.180 },
 ];
 
-// دالة لحساب المسافة بين موقعين
+// دالة لحساب المسافة بين نقطتين
 function getDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // km
+  const R = 6371; // نصف قطر الأرض بالكيلومتر
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat / 2) ** 2 +
@@ -39,10 +39,9 @@ bot.on('location', async (msg) => {
   .sort((a,b) => a.distance - b.distance)
   .slice(0,3);
 
-  // بناء URL لخريطة OpenStreetMap عبر staticmap.openstreetmap.de
-  // نضع دوائر خضراء على مواقع الهبوط
-  const markers = sorted.map(h => `&markers=${h.lat},${h.lon},green`).join('');
-  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=14&size=600x400${markers}`;
+  // بناء رابط OpenStreetMap مع دوائر خضراء
+  const markers = sorted.map(h => `${h.lat},${h.lon},green`).join('|');
+  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=14&size=600x400&markers=${markers}`;
 
   // رسالة نصية مع أسماء المواقع والمسافة
   let reply = 'أقرب 3 مواقع هبوط:\n';
@@ -50,13 +49,13 @@ bot.on('location', async (msg) => {
     reply += `${i+1}- ${h.name} (المسافة: ${h.distance.toFixed(2)} كم)\n`;
   });
 
-  // إنشاء أزرار لفتح كل موقع على OpenStreetMap
+  // أزرار لفتح المواقع على OpenStreetMap
   const inlineKeyboard = sorted.map(h => ([{
     text: `افتح ${h.name}`,
     url: `https://www.openstreetmap.org/?mlat=${h.lat}&mlon=${h.lon}&zoom=16`
   }]));
 
-  // إرسال الصورة + الرسالة + الأزرار
+  // إرسال الصورة + النص + الأزرار
   await bot.sendPhoto(chatId, mapUrl, {
     caption: reply,
     reply_markup: { inline_keyboard: inlineKeyboard }
