@@ -38,8 +38,8 @@ bot.on('location', async (msg) => {
   const res = await geocoder.reverse({ lat: latitude, lon: longitude });
   const city = res[0]?.city || res[0]?.state || 'Unknown';
 
-  // فلترة المواقع حسب المدينة فقط
-  const cityHeliports = heliports.filter(h => h.city.toLowerCase() === city.toLowerCase());
+  
+  
 
   if(cityHeliports.length === 0) {
     await bot.sendMessage(chatId, `No helipads found in ${city}`);
